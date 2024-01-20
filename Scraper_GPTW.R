@@ -3,9 +3,7 @@
 ###  Scraper Great Place To Work ###
 #######################################
 
-
 rm(list=ls())
-
 
 # Cargar librerías --------------------------------------------------------
 library(rvest)      # HTML Hacking & Web Scraping
@@ -22,13 +20,6 @@ xopen(url)
 # Leer HTML --------------------------------------------------------------------
 page <- read_html(url)
 
-# Extracción de nodos ----------------------------------------------------------
-ranking       <- page |> html_nodes(".large") |> html_text()
-empresa       <- page |> html_nodes(".h5") |> html_text()
-localizacion  <- page |> html_nodes(".location li") |> html_text()
-industria     <- page |> html_nodes(".industry li") |> html_text()
-empleados     <- page |> html_nodes(".employee-count li") |> html_text()
-
 
 # Almacenar nodos en una BD ----------------------------------------------------
 df <- data.frame()
@@ -41,7 +32,6 @@ empleados     <- page |> html_nodes(".employee-count li") |> html_text()
 
 
 df <- rbind(df, data.frame(ranking, empresa, localizacion, industria, empleados))
-
 
 
 #Agrupar por años desde 2019 al 2022
@@ -66,6 +56,10 @@ for (page_result in seq(from = 2019, to = 2022, by = 1)) {
 beep(8) # Notificar compilado exitoso
 
 View(df)
+
+#Quitar los espacios vacíos de las dos primeras columans
+
+df <- as.data.frame(apply(df, 2, str_remove_all, " "))
 
 
 # Exportar data como archivo excel ----

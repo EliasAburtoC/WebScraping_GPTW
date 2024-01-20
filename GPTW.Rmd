@@ -1,0 +1,130 @@
+---
+title: "Scraper_GPTW"
+author: "Elías Aburto-Camacllanqui"
+date: "30-09-2023"
+output: 
+  xaringan::moon_reader:
+    css: [xaringan-themer.css, custom.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: 16:11
+encoding: "UTF-8"
+
+---
+
+class: inverse, center, middle
+# .font150[SCRAPER GREAT PLACE TO WORK]
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, warning=FALSE, include=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color       = "#E94B4F",
+  padding          = "16px 50px 12px 50px",
+  code_font_google = google_font("Fira Mono")
+)
+```
+
+```{r xaringanExtra, echo=FALSE}
+#devtools::install_github("gadenbuie/xaringanExtra")
+library(xaringanExtra)
+xaringanExtra::use_xaringan_extra(c("tile_view", "tachyons", "panelset"))
+xaringanExtra::use_tile_view()
+xaringanExtra::use_editable()
+xaringanExtra::use_scribble()
+xaringanExtra::use_logo(
+  image_url ="imagenes/logo.png", 
+  link_url = "https://medicionpsicologica.com",
+  width = 120, 
+  height = 120
+  )
+xaringanExtra::use_clipboard(
+  button_text = "Copiar",
+  success_text = "Copiado",
+  error_text = "Presiona Ctrl+C para copiar"
+)
+xaringanExtra::use_fit_screen()
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,          #<<
+  mute_unhighlighted_code = FALSE  #<<
+)
+```
+
+
+---
+
+# PASO 1
+.font105[Cargar librerías]
+
+```{r echo=FALSE, out.width = "70%", message = FALSE, warning = FALSE}
+library(rvest)      # HTML Hacking & Web Scraping
+library(tidyverse)  # Data Manipulation
+library(openxlsx)   # Excel manipulation
+library(xopen)      # Opens URL in Browser
+library(beepr)      # Notification sounds
+```
+
+
+
+library(rvest)      # HTML Hacking & Web Scraping
+library(tidyverse)  # Data Manipulation
+library(openxlsx)   # Excel manipulation
+library(xopen)      # Opens URL in Browser
+library(beepr)      # Notification sounds
+
+---
+# PASO 2
+.font105[Guardar URL y leer HTML]
+
+###Almacenar el URL de la página de interés en un objeto.
+
+url <- "https://www.greatplacetowork.com.pe/mejores-lugares-para-trabajar/los-mejores-lugares-para-trabajar-del-mundo/2022"
+
+xopen(url)
+
+
+### Leer el contenido HTML del objeto guardado.
+page <- read_html(url)
+
+
+---
+# PASO 3
+.font105[Almacenar nodos en una BD]
+
+###Agrupamos por años desde 2019 al 2022
+
+df <- data.frame()
+
+for (page_result in seq(from = 2019, to = 2022, by = 1)) {
+  
+  url  <- paste0("https://www.greatplacetowork.com.pe/mejores-lugares-para-trabajar/los-mejores-lugares-para-trabajar-del-mundo/", page_result)
+  page <- read_html(url)
+  
+  ranking       <- page |> html_nodes(".large") |> html_text()
+  empresa       <- page |> html_nodes(".h5") |> html_text()
+  localizacion  <- page |> html_nodes(".location li") |> html_text()
+  industria     <- page |> html_nodes(".industry li") |> html_text()
+  empleados     <- page |> html_nodes(".employee-count li") |> html_text()
+  
+  df <- rbind(df, data.frame(ranking, empresa, localizacion, industria, empleados))
+  
+  print(paste("Pagina:", (page_result-2019)+1))
+
+---
+# PASO 4
+## .font100[Resultado final]
+
+```{r, out.width = "70%", echo = FALSE, message=FALSE}
+data <- readxl::read_excel("GPTW.xlsx")
+DT::datatable(data, options = list(pageLength = 10))
+```
+
+---
+
+

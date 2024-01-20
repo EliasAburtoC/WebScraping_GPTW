@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Scraper_GPTW</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Elías Aburto-Camacllanqui" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <script type="application/json" id="xaringanExtra-editable-docid">{"id":"daa4c288c76f4aa7ab6cb9dbd279f9db","expires":14}</script>
+    <script src="libs/himalaya/himalaya.js"></script>
+    <script src="libs/js-cookie/js.cookie.js"></script>
+    <link href="libs/editable/editable.css" rel="stylesheet" />
+    <script src="libs/editable/editable.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <script src="libs/clipboard/clipboard.min.js"></script>
+    <link href="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copiar","success":"Copiado","error":"Presiona Ctrl+C para copiar"})</script>
+    <script src="libs/xaringanExtra_fit-screen/fit-screen.js"></script>
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <link href="libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+    <script src="libs/datatables-binding/datatables.js"></script>
+    <script src="libs/jquery/jquery-3.6.0.min.js"></script>
+    <link href="libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+    <script src="libs/dt-core/js/jquery.dataTables.min.js"></script>
+    <link href="libs/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+    <script src="libs/crosstalk/js/crosstalk.min.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Scraper_GPTW
+]
+.author[
+### Elías Aburto-Camacllanqui
+]
+.date[
+### 30-09-2023
+]
+
+---
+
+
+class: inverse, center, middle
+# .font150[SCRAPER GREAT PLACE TO WORK]
+
+
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 120px;
+height: 120px;
+z-index: 0;
+background-image: url(imagenes/logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('a')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = 'https://medicionpsicologica.com'
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div>
+
+
+---
+
+# PASO 1
+.font105[Cargar librerías]
+
+
+
+# Cargar librerías -----------------------------------------------
+library(rvest)      # HTML Hacking &amp; Web Scraping
+library(tidyverse)  # Data Manipulation
+library(openxlsx)   # Excel manipulation
+library(xopen)      # Opens URL in Browser
+library(beepr)      # Notification sounds
+
+---
+# PASO 2
+.font105[Guardar URL y leer HTML]
+
+###Almacenar el URL de la página de interés en un objeto.
+
+url &lt;- "https://www.greatplacetowork.com.pe/mejores-lugares-para-trabajar/los-mejores-lugares-para-trabajar-del-mundo/2022"
+xopen(url)
+
+
+### Leer el contenido HTML del objeto guardado.
+page &lt;- read_html(url)
+
+
+---
+# PASO 3
+.font105[Almacenar nodos en una BD]
+
+###Agrupamos por años desde 2019 al 2022
+
+df &lt;- data.frame()
+
+for (page_result in seq(from = 2019, to = 2022, by = 1)) {
+  
+  url  &lt;- paste0("https://www.greatplacetowork.com.pe/mejores-lugares-para-trabajar/los-mejores-lugares-para-trabajar-del-mundo/", page_result)
+  page &lt;- read_html(url)
+  
+  ranking       &lt;- page |&gt; html_nodes(".large") |&gt; html_text()
+  empresa       &lt;- page |&gt; html_nodes(".h5") |&gt; html_text()
+  localizacion  &lt;- page |&gt; html_nodes(".location li") |&gt; html_text()
+  industria     &lt;- page |&gt; html_nodes(".industry li") |&gt; html_text()
+  empleados     &lt;- page |&gt; html_nodes(".employee-count li") |&gt; html_text()
+  
+  df &lt;- rbind(df, data.frame(ranking, empresa, localizacion, industria, empleados))
+  
+  print(paste("Pagina:", (page_result-2019)+1))
+
+---
+# PASO 4
+## .font100[Resultado final]
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-9163d57e508bc0a87ed6" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9163d57e508bc0a87ed6">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125"],["\r\n1","\r\n2","\r\n3","\r\n4","\r\n5","\r\n6","\r\n7","\r\n8","\r\n9","\r\n10","\r\n11","\r\n12","\r\n13","\r\n14","\r\n15","\r\n16","\r\n17","\r\n18","\r\n19","\r\n20","\r\n21","\r\n22","\r\n23","\r\n24","\r\n25","\r\n1","\r\n2","\r\n3","\r\n4","\r\n5","\r\n6","\r\n7","\r\n8","\r\n9","\r\n10","\r\n11","\r\n12","\r\n13","\r\n14","\r\n15","\r\n16","\r\n17","\r\n18","\r\n19","\r\n20","\r\n21","\r\n22","\r\n23","\r\n24","\r\n25","\r\n1","\r\n2","\r\n3","\r\n4","\r\n5","\r\n6","\r\n7","\r\n8","\r\n9","\r\n10","\r\n11","\r\n12","\r\n13","\r\n14","\r\n15","\r\n16","\r\n17","\r\n18","\r\n19","\r\n20","\r\n21","\r\n22","\r\n23","\r\n24","\r\n25","\r\n1","\r\n2","\r\n3","\r\n4","\r\n5","\r\n6","\r\n7","\r\n8","\r\n9","\r\n10","\r\n11","\r\n12","\r\n13","\r\n14","\r\n15","\r\n16","\r\n17","\r\n18","\r\n19","\r\n20","\r\n21","\r\n22","\r\n23","\r\n24","\r\n25","\r\n1","\r\n2","\r\n3","\r\n4","\r\n5","\r\n6","\r\n7","\r\n8","\r\n9","\r\n10","\r\n11","\r\n12","\r\n13","\r\n14","\r\n15","\r\n16","\r\n17","\r\n18","\r\n19","\r\n20","\r\n21","\r\n22","\r\n23","\r\n24","\r\n25"],["\r\nDHLExpress","\r\nHilton","\r\nCisco","\r\nSalesforce","\r\nMillicom","\r\nAbbVie","\r\nDeloitte","\r\nHilti","\r\nSCJohnson","\r\nStryker","\r\nTeleperformance","\r\nMedtronic","\r\nEY","\r\nVRIO:DIRECTV&amp;SKY","\r\nSAPSE","\r\nScotiabank","\r\nAccenture","\r\nNestle","\r\nCadence","\r\nMercadoLibre","\r\nFedEx","\r\nConcentrix","\r\nSopraSteria","\r\nAdobe","\r\nBristol-MyersSquibb","\r\nCisco","\r\nHilton","\r\nSalesforce","\r\nDHLExpress","\r\nMars,Incorporated","\r\nSAPSE","\r\nEY","\r\nStrykerCorporation","\r\nSAS","\r\nWorkday","\r\nTheAdeccoGroup","\r\nRoche","\r\nMercadoLibre","\r\nAmericanExpress","\r\nAdobe","\r\nAbbVie","\r\nIntuit,Inc","\r\nAdmiralGroupplc","\r\nBelcorp","\r\nScotiabank","\r\nAtento","\r\nNatura","\r\nMcDonald´s","\r\nSantander","\r\nAT&amp;TLatinAmerica","\r\nCisco","\r\nDHLExpress","\r\nHilton","\r\nSalesforce","\r\nStryker","\r\nMars,Incorporated","\r\nTheAdeccoGroup","\r\nMercadoLibre","\r\nSAS","\r\nEY","\r\nIntuit,Inc.","\r\nSAPSE","\r\nAdobe","\r\nAdmiralGroupplc","\r\nAbbVie","\r\nDaimlerMobilityAG","\r\nDellTechnologies","\r\nCadence","\r\nMarriottInternational,Inc","\r\nVolvoGroup","\r\nRoche","\r\nDeloitte","\r\nSantander","\r\nNatura","\r\nScotiabank","\r\nDHLExpress","\r\nCisco","\r\nHilton","\r\nAbbVie","\r\nSalesforce","\r\n3M","\r\nSCJohnson","\r\nAmgen","\r\nSAP","\r\nRoche","\r\nHiltiAG","\r\nEY","\r\nSAS","\r\nAT&amp;TLatinAmerica:AT&amp;TMexico,Vrio,DIRECTV,SKY","\r\nStryker","\r\nNovartis","\r\nCadence","\r\nNovoNordisk","\r\nTheAdeccoGroup","\r\nMercadoLibre","\r\nAdobe","\r\nAmericanExpress","\r\nAtlassianInc","\r\nSantander","\r\nTeleperformance","\r\nDHLExpress","\r\nHilton","\r\nCisco","\r\nSalesforce","\r\nMillicom","\r\nAbbVie","\r\nDeloitte","\r\nHilti","\r\nSCJohnson","\r\nStryker","\r\nTeleperformance","\r\nMedtronic","\r\nEY","\r\nVRIO:DIRECTV&amp;SKY","\r\nSAPSE","\r\nScotiabank","\r\nAccenture","\r\nNestle","\r\nCadence","\r\nMercadoLibre","\r\nFedEx","\r\nConcentrix","\r\nSopraSteria","\r\nAdobe","\r\nBristol-MyersSquibb"],["BonnBonnNorthRhine–WestphaliaGermany","McLeanVirginiaUnitedStates","SanJoseCaliforniaUnitedStates","SanFranciscoCaliforniaUnitedStates","LuxemborgLuxemborg","NorthChicagoIllinoisUnitedStates","LondonEnglandUnitedKingdom","SchaanLiechtenstein","RacineWisconsinUnitedStates","KalamazooMichiganUnitedStates","ParisIledeFranceFrance","DublinLeinsterIreland","LondonEnglandUnitedKingdom","BuenosAiresBuenosAiresArgentina","WalldorfBaden-WürttembergGermany","TorontoOntarioCanada","NewYorkNewYorkUnitedStates","VeveyVaudSwitzerland","SanJoseCaliforniaUnitedStaetes","BuenosAiresBuenosAiresArgentina","MemphisTennesseeUnitedStates","FremontCaliforniaUnitedStates","AnnecyFranceFrance","SanJoseCaliforniaUnitedStates","NewYorkNewYorkUnitedStates","Argentina,Australia,Brazil,CostaRica,Canada,GreaterChina,Colombia,Germany,India,Ireland,Italy,Korea,Mexico,Nigeria,Peru,Poland,Portugal,Singapore,Spain,UAE,UnitedKingdom,UnitedStates","Australia,Brazil,Canada,GreaterChina,Colombia,Germany,India,Italy,Mexico,Peru,KingdomofSaudiArabia,TheNetherlands,Turkey,UAE,UnitedKingdom,UnitedStates","Argentina,Australia,Canada,France,Germany,India,Ireland,Japan,Singapore,TheNetherlands,UnitedKingdom,UnitedStates","Argentina,Australia,Austria,Bolivia,Brazil,Chile,GreaterChina,Colombia,CostaRica,Denmark,Ecuador,ElSalvador,France,Greece,Guatemala,Honduras,India,Ireland,Japan,Korea,México,Nicaragua,Norway,Panamá,Paraguay,Peru,RepDominicana,KingdomofSaudiArabia,Singapore,SriLanka,Switzerland,UAE,Uruguay","Argentina,Australia,Austria,Belgium,Brazil,GreaterChina,Denmark,Finland,France,India,Ireland,Italy,Japan,Korea,Norway,Portugal,Spain,Switzerland,UnitedKingdom,UnasolaoperaciónregionalCentroaméricayCaribe,UnitedStates","Argentina,Australia,Brazil,CostaRica,Canada,Chile,GreaterChina,Colombia,France,India,Ireland,Japan,Korea,Peru,Singapore,UnitedKingdom,UnitedStates","Austria,Belgium,Canada,GreaterChina,France,India,Ireland,Korea,Mexico,Paraguay,Poland,Portugal,UnitedKingdom,UnasolaoperaciónregionalCentroaméricayCaribe,UnitedStates","Australia,Brazil,Canada,GreaterChina,France,Italy,Japan,Korea,Mexico,Singapore,Spain,UnitedKingdom,UnitedStates","Australia,Austria,Belgium,Canada,France,Germany,India,Ireland,Italy,Japan,Poland,Portugal,KingdomofSaudiArabia,Spain,Switzerland,TheNetherlands,UnitedKingdom,UnitedStates","Germany,Ireland,Sweden,UnitedKingdom,UnitedStates","Belgium,Canada,Denmark,Germany,Ireland,Italy,Luxembourg,Poland,Singapore,Spain,Switzerland,TheNetherlands,UnitedKingdom,UnitedStates","Belgium,Brazil,Chile,GreaterChina,Colombia,Denmark,Ecuador,Korea,Peru,Uruguay","Argentina,Brazil,Chile,Colombia,Mexico,Uruguay","France,Italy,Japan,Mexico,Poland,Spain,UnitedStates","Australia,Germany,India,Japan,UnitedKingdom,UnitedStates","Australia,Austria,Canada,Denmark,Finland,France,Germany,Greece,Ireland,Italy,Japan,Korea,Portugal,KingdomofSaudiArabia,Spain,Sweden,Switzerland,TheNetherlands,Turkey,UnitedKingdom,UnitedStates","Australia,Canada,France,India,Singapore,UnitedKingdom,UnitedStates","Canada,France,India,Italy,Spain,UnitedKingdom","Bolivia,Chile,CostaRica,Ecuador,ElSalvador,Guatemala","Peru,CostaRica,RepDominicana,ElSalvador,Panamá,Trinidad,Chile","Argentina,Chile,Colombia,ElSalvador,Guatemala,México,Peru,Spain,Uruguay","Argentina,Brazil,Chile,Colombia,Mexico,Peru","Belgium,Brazil,Ecuador,India,Panamá,Uruguay","Argentina,Brazil,Chile,Denmark,Ireland,Mexico,Portugal,Uruguay","Argentina,Chile,Colombia,Ecuador,Mexico,Peru,Uruguay","SanJose,CA,UnitedStates","Bonn,Germany","McLean,VA,UnitedStates","SanFrancisco,CA,UnitedStates","Kalamazoo,MI,UnitedStates","McLean,VA,UnitedStates","Zurich,Switzerland","BuenosAires,Argentina","Cary,NC,UnitedStates","London,UnitedKingdom","MountainView,CA,UnitedStates","Walldorf,Germany","SanJose,CA,UnitedStates","Cardiff,Wales,UnitedKingdom","Chicago,IL,UnitedStates","Stuttgart,Germany","RoundRock,TX,UnitedStates","SanJose,CA,UnitedStates","Bethesda,UnitedStates","Gothenburg,Sweden","Basel,Switzerland","London,UnitedKingdom","Madrid,Spain","SãoPaulo,Brazil","Toronto,Canada","Bonn,Germany","SanJose,UnitedStates","McLean,UnitedStates","NorthChicago,UnitedStates","SanFrancisco,UnitedStates","Maplewood,UnitedStates","Racine,UnitedStates","ThousandOaks,UnitedStates","Walldorf,Germany","Basel,Switzerland","Schaan,Liechtenstein","London,UnitedKindgom","Cary,UnitedStates","Dallas,UnitedStates","Kalamazoo,UnitedStates","Basel,Switzerland","SanJose,UnitedStates","Bagsværd,Denmark","Zurich,Switzerland","BuenosAires,Argentina","SanJose,UnitedStates","NewYork,UnitedStates","Sydney,Australia","Madrid,Spain","Paris,France","BonnBonnNorthRhine–WestphaliaGermany","McLeanVirginiaUnitedStates","SanJoseCaliforniaUnitedStates","SanFranciscoCaliforniaUnitedStates","LuxemborgLuxemborg","NorthChicagoIllinoisUnitedStates","LondonEnglandUnitedKingdom","SchaanLiechtenstein","RacineWisconsinUnitedStates","KalamazooMichiganUnitedStates","ParisIledeFranceFrance","DublinLeinsterIreland","LondonEnglandUnitedKingdom","BuenosAiresBuenosAiresArgentina","WalldorfBaden-WürttembergGermany","TorontoOntarioCanada","NewYorkNewYorkUnitedStates","VeveyVaudSwitzerland","SanJoseCaliforniaUnitedStaetes","BuenosAiresBuenosAiresArgentina","MemphisTennesseeUnitedStates","FremontCaliforniaUnitedStates","AnnecyFranceFrance","SanJoseCaliforniaUnitedStates","NewYorkNewYorkUnitedStates"],["Transporte","Hospitalidad","Tecnologíasdelainformación","Tecnologíasdelainformación","Telecomunicaciones","Biotecnologíayfarmacéutica","Serviciosprofesionales","Manufacturayproducción","Manufacturayproducción","Manufacturayproducción","Serviciosprofesionales","Biotecnologíayfarmacéutica","Serviciosprofesionales","Telecomunicaciones","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Serviciosprofesionales","Manufacturayproducción","Electrónica","Tecnologíasdelainformación","Transporte","Serviciosprofesionales","Tecnologíasdelainformación","Tecnologíasdelainformación","Biotecnologíayfarmacéutica","Tecnologíasdelainformación","Hospitalidad","Tecnologíasdelainformación","Transporte","Manufacturayproducción","Tecnologíasdelainformación","Serviciosprofesionales","Salud","Tecnologíasdelainformación","Tecnologíasdelainformación","Serviciosprofesionales","Biotecnologíayfarmacéutica","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Tecnologíasdelainformación","Biotecnologíayfarmacéutica","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Salud","Serviciosfinancierosyseguros","Serviciosprofesionales","Manufacturayproducción","Hospitalidad","Serviciosfinancierosyseguros","Telecomunicaciones","Tecnologíasdelainformación","Transporte","Hospitalidad","Tecnologíasdelainformación","Salud","Manufacturayproducción","Serviciosprofesionales","Tecnologíasdelainformación","Tecnologíasdelainformación","Serviciosprofesionales","Tecnologíasdelainformación","Tecnologíasdelainformación","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Biotecnologíayfarmacéutica","Serviciosfinancierosyseguros","Tecnologíasdelainformación","Electrónica","Hospitalidad","Manufacturayproducción","Biotecnologíayfarmacéutica","Serviciosprofesionales","Serviciosfinancierosyseguros","Manufacturayproducción","Serviciosfinancierosyseguros","Transporte","Tecnologíasdelainformación","Hospitalidad","Biotecnologíayfarmacéutica","Tecnologíasdelainformación","Manufacturayproducción","Manufacturayproducción","Biotecnologíayfarmacéutica","Tecnologíasdelainformación","Salud","Manufacturayproducción","Serviciosprofesionales","Tecnologíasdelainformación","Telecomunicaciones","Manufacturayproducción","Salud","Electrónica","Biotecnologíayfarmacéutica","Serviciosprofesionales","Tecnologíasdelainformación","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Serviciosprofesionales","Transporte","Hospitalidad","Tecnologíasdelainformación","Tecnologíasdelainformación","Telecomunicaciones","Biotecnologíayfarmacéutica","Serviciosprofesionales","Manufacturayproducción","Manufacturayproducción","Manufacturayproducción","Serviciosprofesionales","Biotecnologíayfarmacéutica","Serviciosprofesionales","Telecomunicaciones","Tecnologíasdelainformación","Serviciosfinancierosyseguros","Serviciosprofesionales","Manufacturayproducción","Electrónica","Tecnologíasdelainformación","Transporte","Serviciosprofesionales","Tecnologíasdelainformación","Tecnologíasdelainformación","Biotecnologíayfarmacéutica"],["Empleados:120,000","Empleados:150,050","Empleados:116,418","Empleados:86,000","Empleados:21,000","Empleados:50,000","Empleados:415,000","Empleados:32,092","Empleados:12,000","Empleados:48,025","Empleados:403,000","Empleados:90,000","Empleados:365,399","Empleados:7,300","Empleados:112,106","Empleados:89,500","Empleados:710,000","Empleados:270,000","Empleados:9,797","Empleados:30,000","Empleados:550,000","Empleados:290,000","Empleados:47,000","Empleados:28,167","Empleados:32,200","Empleados:72,094","Empleados:171,000","Empleados:40,000","Empleados:99,597","Empleados:68,025","Empleados:92,174","Empleados:240,461","Empleados:32,701","Empleados:13,939","Empleados:11,000","Empleados:34,000","Empleados:94,442","Empleados:8,655","Empleados:55,809","Empleados:22,000","Empleados:30,000","Empleados:8,902","Empleados:7,857","Empleados:10,000","Empleados:97,000","Empleados:154,000","Empleados:6,836","Empleados:210,000","Empleados:202,713","Empleados:30,000","Empleados:79,304","Empleados:104,000","Empleados:173,504","Empleados:52,000","Empleados:40,000","Empleados:67,784","Empleados:45,000","Empleados:13,058","Empleados:13,000","Empleados:300,675","Empleados:9,382","Empleados:95,853","Empleados:22,000","Empleados:11,243","Empleados:30,000","Empleados:14,000","Empleados:165,000","Empleados:8,674","Empleados:176,000","Empleados:100,000","Empleados:98,000","Empleados:334,800","Empleados:194,000","Empleados:6,396","Empleados:97,000","Empleados:111,000","Empleados:78,430","Empleados:136,805","Empleados:48,000","Empleados:60,000","Empleados:94,000","Empleados:10,995","Empleados:22,851","Empleados:102,400","Empleados:100,000","Empleados:29,546","Empleados:318,087","Empleados:12,545","Empleados:25,791","Empleados:41,942","Empleados:107,000","Empleados:9,187","Empleados:45,323","Empleados:30,000","Empleados:24,651","Empleados:24,500","Empleados:63,700","Empleados:6,640","Empleados:202,713","Empleados:380,000","Empleados:120,000","Empleados:150,050","Empleados:116,418","Empleados:86,000","Empleados:21,000","Empleados:50,000","Empleados:415,000","Empleados:32,092","Empleados:12,000","Empleados:48,025","Empleados:403,000","Empleados:90,000","Empleados:365,399","Empleados:7,300","Empleados:112,106","Empleados:89,500","Empleados:710,000","Empleados:270,000","Empleados:9,797","Empleados:30,000","Empleados:550,000","Empleados:290,000","Empleados:47,000","Empleados:28,167","Empleados:32,200"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ranking<\/th>\n      <th>empresa<\/th>\n      <th>localizacion<\/th>\n      <th>industria<\/th>\n      <th>empleados<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"columnDefs":[{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:11"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
